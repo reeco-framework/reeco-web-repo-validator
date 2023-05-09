@@ -1,0 +1,3 @@
+[submodule "reeco-annotation-schema"]
+	path = reeco-annotation-schema
+	url = https://github.com/reeco-framework/reeco-annotation-schema
