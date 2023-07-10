@@ -17,8 +17,6 @@
 {% else %}
 <p>No markdwown files found.</p>
 {% endif %}
-
-
 <pre>{{validation}}</pre>
 {% for file in validation.keys() %}
 <p>Validation for file {{file}}</p>
@@ -27,9 +25,5 @@
     <li>{{error}}
 {% endfor%}    
 </ul>
-
 {% endfor %}
-
-<code>{{files}}</code>
-
 {% endblock %}
