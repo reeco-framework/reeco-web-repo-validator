@@ -1,3 +1,26 @@
-<h1>Validating {{ repo }}!</h1>
+<p><a href="/">Back</a></p>
+<h1>Validating {{ repo }}</h1>
 
-<p>and more...</p>
+<p>Repository: {{ repo }}</p>
+<p>Number of markdown files: <code> {{ files.total_count }} </code></p>
+<p>List of files:</p>
+<ul>
+    {% for item in files['items'] %}
+    <li><a href="{{ item.html_url }}" target="_blank">{{ item.path }}</a>
+    {% endfor %}
+</ul>
+
+
+<pre>{{validation}}</pre>
+{% for file in validation.keys() %}
+<p>Validation for file {{file}}</p>
+<ul>
+{% for error in validation[file] %}
+    <li>{{error}}
+{% endfor%}    
+</ul>
+
+{% endfor %}
+
+<code>{{files}}</code>
+    
