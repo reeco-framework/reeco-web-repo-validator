@@ -60,7 +60,7 @@ def validateAction():
             validation=validate(files['items'])
         else:
             validation={}
-        return render_template('validate.html', repo=repo, files=files, validation=validation, messages=session['messages'])
+        return render_template('validate.html', repo=repo, files=files, validation=validation)
         
 
 def searchFiles(repo):

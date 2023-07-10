@@ -1,3 +1,4 @@
+{% if 'messages' in session %}
 {% set messages = session['messages'] %}
 {% if messages|length > 0 %}
 {% for message in messages %}
@@ -6,3 +7,4 @@
 {% endif %}
 {# Clear the session #}
 {% set _ = session.update({'messages':[]}) %}
+{% endif %}
