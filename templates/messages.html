@@ -1,0 +1,8 @@
+{% set messages = session['messages'] %}
+{% if messages|length > 0 %}
+{% for message in messages %}
+<p class="severity-{{ message['severity'] }}">{{ message['message'] }}</p>
+{% endfor %}
+{% endif %}
+{# Clear the session #}
+{% set _ = session.update({'messages':[]}) %}

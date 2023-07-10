@@ -12,12 +12,13 @@
 </head>
 <body>
 
-<div id="container">
-
+<div id="messages">
+  {% include 'messages.html' %}
+</div>
+<div id="main">
   <!-- Jinja directives: page contents will go between them -->
   {% block content %}
   {% endblock %}
-
 </div>
 
 </body>

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for, request, session
 from flask_bootstrap import Bootstrap
 
 from flask_wtf import FlaskForm, CSRFProtect
@@ -27,7 +27,6 @@ GITHUB_TOKEN = Path(".GITHUB_TOKEN").read_text()
 #GH = Github(GITHUB_TOKEN)
 # Flask-WTF requires this line
 csrf = CSRFProtect(app)
-
 
 ###
 VALIDATOR = Validator()
@@ -61,7 +60,7 @@ def validateAction():
             validation=validate(files['items'])
         else:
             validation={}
-        return render_template('validate.html', repo=repo, files=files, validation=validation)
+        return render_template('validate.html', repo=repo, files=files, validation=validation, messages=session['messages'])
         
 
 def searchFiles(repo):
@@ -70,7 +69,11 @@ def searchFiles(repo):
     headers = {'Authorization': 'Bearer ' + GITHUB_TOKEN}
     print(url)
     r = requests.get(url, headers=headers)
-    return r.json()
+    if r.status_code == 200:
+        return r.json()
+    else:
+        addMessage(3, "Can't connect to the repo: " + r.json()['message'])
+        return "{}"
 
 def validate(files):
     report = {}
@@ -101,3 +104,20 @@ def validateFile(url):
             # Malformed YAML in Markdown
             report = report + [e]
     return report
+
+# Severity:
+# - Info: 1
+# - Warn: 2
+# - Alert: 3
+# - Error: 4
+def addMessage(severity, message):
+    if 'messages' not in session:
+        session['messages'] = []
+    print(session)
+    session['messages'].append({'severity': severity, 'message': message})
+    return True
+
+def clearMessages():
+    session.pop('messages', None)
+    return True
+
