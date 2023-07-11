@@ -17,12 +17,15 @@
 {% else %}
 <p>No markdwown files found.</p>
 {% endif %}
+
 {% for file in validation.keys() %}
 <p>Validation for file {{file}}</p>
 <ul>
-{% for error in validation[file] %}
-    <li>{{error}}
-{% endfor%}    
+    {% for error in validation[file][1] %}
+    <li>{{error.autos[0]}} {{error.code}}
+    {% endfor%}
 </ul>
 {% endfor %}
 {% endblock %}
+
+<pre>{{validation}}</pre>

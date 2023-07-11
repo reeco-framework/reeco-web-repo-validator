@@ -78,32 +78,50 @@ def searchFiles(repo):
 def validate(files):
     report = {}
     for fi in files:
-        report[fi['path']] = validateFile(fi['url'])
+        content = getFileContent(fi['url'])
+        report[fi['path']] = [content, validateFileContent(content)]
     return report
 
-def validateFile(url):
+def getFileContent(url):
     headers = {'Authorization': 'Bearer ' + GITHUB_TOKEN}
     r = requests.get(url, headers=headers)
-    report = []
+    content = ""
     if r.status_code == 200:
         download_url = r.json()['download_url']
         try:
             down = requests.get(download_url, headers=headers)
             if down.status_code == 200:
-                annotations, content = frontmatter.parse(down.text)
-                ## Start validation
-                if 'component-id' in annotations.keys():
-                    ### Validate as component
-                    report = VALIDATOR.asComponent(annotations)
-                elif 'container-id' in annotations.keys():
-                    ### Validate as container
-                    report = VALIDATOR.asContainer(annotations)
+                return down.text
             else:
-                report = report + ['Error downloading ' + download_url + ' (' + down.status_code + ')']
+                addMessage(3, "Cannot access URL: " + download_url)
+                print("Cannot access URL " + download_url + " - status was " + down.status_code)
         except Exception as e:
-            # Malformed YAML in Markdown
-            report = report + [e]
+            # Error
+            print(e)
+    else:
+        addMessage(3, "Cannot access URL: " + url)
+        print("Cannot access URL " + url + " - status was " + r.status_code)
+    return content
+
+def validateFileContent(content):
+    annotations, content = frontmatter.parse(content)
+    report = []
+    ## Start validation
+    if 'component-id' in annotations.keys():
+        ### Validate as component
+        report = VALIDATOR.asComponent(annotations)
+    elif 'container-id' in annotations.keys():
+        ### Validate as container
+        report = VALIDATOR.asContainer(annotations)
+    else:
+        report = [NoAnnotationsError()]
     return report
+
+class NoAnnotationsError(Exception):
+    def __init__(self):
+        # Call the base class constructor with the parameters it needs
+        super().__init__("No ecosystem annotations found")
+        self.autos = ''
 
 # Severity:
 # - Info: 1

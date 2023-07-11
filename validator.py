@@ -9,8 +9,15 @@ from reeco import Schema as ReecoSchema
 class Validator:
     def __init__(self):
         REECO = ReecoSchema()
+        #print("Components: ",REECO.components())
         components = list(map( lambda x: x['type'], REECO.components() ) ) + ['Component'] 
         containers = list(map( lambda x: x['type'], REECO.containers() ) ) + ['Container']
+
+        ## Reusable validators
+        validateURL = And(str, Regex('^http[s]?://.+$'), error='Value must be an HTTP(S) URL' )
+        validateID = And(str, Regex('[^\s]+(/[^\s]+(/[^\s]+)?)?') )
+
+        ## Validators for both containers and components
         both = [
             {Or("component-id", "container-id", only_one=True): str}
         ]
@@ -20,7 +27,7 @@ class Validator:
         {'name': str},
         {'type': And(lambda v: v in containers, error='Type must be one of: ' + ", ".join(containers) )},
         # container-id
-        {'container-id': And(str, Regex('[^\s]+(/[^\s]+(/[^\s]+)?)?') ) },
+        {'container-id': validateID},
         # funder [CHECK]
         {Optional('funder'): {
             list: [ { Optional('name'): str, 
@@ -33,7 +40,8 @@ class Validator:
         ]
         self._componentValidators = [] + both + [
             # component-id
-            {'component-id': And(str, Regex('[^\s]+(/[^\s]+(/[^\s]+)?)?') ) },
+            {'component-id': validateID },
+            {Forbidden('container-id'): object },
             # resource
             {Optional('resource'): str},
             # doi
@@ -47,7 +55,9 @@ class Validator:
             # release-date
             {Optional('release-date'): str},
             # release-number
+            {Optional('release-date'): str},
             # release-link
+            {Optional('release-link'): validateURL},
             # changelog
             # licence
             # image
@@ -83,12 +93,18 @@ class Validator:
     
     def _validate(self, annotations, validators):
         errors = []
-        print(validators)
+        #print(validators)
         for attribute in validators:
             try:
                 schema = Schema(attribute, ignore_extra_keys=True)
                 schema.validate(annotations)
             except Exception as e:
+                print(type(e))
+                print(dir(e))
+                print('args',e.args)
+                print('autos',e.autos)
+                print('code',e.code)
+                print('errors',e.errors)
                 errors.append(e)
         return errors
     
