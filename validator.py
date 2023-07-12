@@ -12,7 +12,8 @@ class Validator:
         #print("Components: ",REECO.components())
         components = list(map( lambda x: x['type'], REECO.components() ) ) + ['Component'] 
         containers = list(map( lambda x: x['type'], REECO.containers() ) ) + ['Container']
-
+        licences = list(map( lambda x: x['code'], REECO.licences() ) )
+        print(licences)
         ## Reusable validators
         validateURL = And(str, Regex('^http[s]?://.+$'), error='Value must be an HTTP(S) URL' )
         validateID = And(str, Regex('[^\s]+(/[^\s]+(/[^\s]+)?)?') )
@@ -59,7 +60,9 @@ class Validator:
             # release-link
             {Optional('release-link'): validateURL},
             # changelog
+            ### TODO Check file exists
             # licence
+            {'licence': And(lambda v: v in licences, error='Licence must be a list of licence codes from the Reeco Annotation Schema reference.' )},
             # image
             # logo
             # demo

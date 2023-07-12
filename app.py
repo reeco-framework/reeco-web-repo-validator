@@ -55,19 +55,22 @@ def validateAction():
         resp = make_response("Argument not provided: repo", 400)
         return resp
     else:
-        files = searchFiles(repo)
-        if 'total_count' in files and files['total_count'] > 0:
-            validation=validate(files['items'])
+        files = getFiles(repo)
+        print(files)
+        # Only keep md files
+        files = [item for item in files if item['path'].endswith('.md') ]
+        if len(files) > 0:
+            validation=validate(files)
         else:
             validation={}
         return render_template('validate.html', repo=repo, files=files, validation=validation)
-        
 
-def searchFiles(repo):
+def getFiles(repo):
     repo = repo.replace('https://github.com/','')
-    url = "https://api.github.com/search/code?q=extension:md+repo:" + repo
-    headers = {'Authorization': 'Bearer ' + GITHUB_TOKEN}
-    print(url)
+    url = "https://api.github.com/repos/" + repo + "/contents/"
+    #url = "https://api.github.com/search/code?q=extension:md+repo:" + repo
+    headers = {'Authorization': 'Bearer ' + GITHUB_TOKEN,
+        'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'}
     r = requests.get(url, headers=headers)
     if r.status_code == 200:
         return r.json()
@@ -121,7 +124,8 @@ class NoAnnotationsError(Exception):
     def __init__(self):
         # Call the base class constructor with the parameters it needs
         super().__init__("No ecosystem annotations found")
-        self.autos = ''
+        self.autos = ["Not a component:"]
+        self.code = "no annotations found"
 
 # Severity:
 # - Info: 1
