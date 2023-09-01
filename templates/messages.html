@@ -2,7 +2,19 @@
 {% set messages = session['messages'] %}
 {% if messages|length > 0 %}
 {% for message in messages %}
-<p class="severity-{{ message['severity'] }}">{{ message['message'] }}</p>
+
+    {% if message['severity'] == 4 %}
+        {% set severity = "success" %}
+    {% elif message['severity'] == 3 %}
+        {% set severity = "danger" %}
+    {% elif message['severity'] == 2 %}
+        {% set severity = "warning" %}
+    {% elif message['severity'] == 1 %}
+        {% set severity = "info" %}
+    {% else %}
+        {% set severity = "primary" %}
+    {% endif %}
+<div class="severity-{{ message['severity'] }} alert alert-{{severity}}">{{ message['message'] }}</div>
 {% endfor %}
 {% endif %}
 {# Clear the session #}

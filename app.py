@@ -34,7 +34,8 @@ VALIDATOR = Validator()
 
 
 class URLForm(FlaskForm):
-    url = StringField('Type a GitHub repository URL', validators=[DataRequired(), URL()])
+    url = StringField('GitHub repository URL', validators=[DataRequired(), URL()])
+    tree = StringField('Tree (defaults to "main")')
     submit = SubmitField('Submit')
 
 @app.route('/', methods=['GET', 'POST'])
@@ -51,32 +52,41 @@ def indexAction():
 @app.route('/validate',methods = ['GET'])
 def validateAction():
     repo = request.args.get('repo')
+    tree = request.args.get('tree')
     if repo is None:
         resp = make_response("Argument not provided: repo", 400)
         return resp
     else:
-        files = getFiles(repo)
-        print(files)
+        if tree is None:
+            tree = 'main'
+        files = getFiles(repo, tree)
+        # print("files:",len(files))
+        print("files obj: ", files)
         # Only keep md files
         files = [item for item in files if item['path'].endswith('.md') ]
+        # print(len(files))
         if len(files) > 0:
             validation=validate(files)
         else:
             validation={}
-        return render_template('validate.html', repo=repo, files=files, validation=validation)
+        return render_template('validate.html', repo=repo, tree=tree, files=files, validation=validation)
 
-def getFiles(repo):
+def getFiles(repo, tree):
     repo = repo.replace('https://github.com/','')
-    url = "https://api.github.com/repos/" + repo + "/contents/"
+    url = "https://api.github.com/repos/" + repo + "/git/trees/" + tree + "?recursive=1"
     #url = "https://api.github.com/search/code?q=extension:md+repo:" + repo
     headers = {'Authorization': 'Bearer ' + GITHUB_TOKEN,
         'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'}
-    r = requests.get(url, headers=headers)
-    if r.status_code == 200:
-        return r.json()
-    else:
-        addMessage(3, "Can't connect to the repo: " + r.json()['message'])
-        return "{}"
+    try:
+        r = requests.get(url, headers=headers)
+        if r.status_code == 200:
+            return r.json()['tree']
+        else:
+            addMessage(3, "Can't connect to the repo: " + r.json()['message'])
+    except Exception as ex:
+        addMessage(3, "Error while connecting to the URL: " + ex)
+    return {}
+
 
 def validate(files):
     report = {}
@@ -86,29 +96,36 @@ def validate(files):
     return report
 
 def getFileContent(url):
-    headers = {'Authorization': 'Bearer ' + GITHUB_TOKEN}
+    #print(url)
+    headers = {'Authorization': 'Bearer ' + GITHUB_TOKEN, "Accept": "application/vnd.github.raw"}
     r = requests.get(url, headers=headers)
     content = ""
     if r.status_code == 200:
-        download_url = r.json()['download_url']
-        try:
-            down = requests.get(download_url, headers=headers)
-            if down.status_code == 200:
-                return down.text
-            else:
-                addMessage(3, "Cannot access URL: " + download_url)
-                print("Cannot access URL " + download_url + " - status was " + down.status_code)
-        except Exception as e:
-            # Error
-            print(e)
+        content = r.text
+        #download_url = r.json()['download_url']
+        #         try:
+        #             down = requests.get(download_url, headers=headers)
+        #             if down.status_code == 200:
+        #                 return down.text
+        #             else:
+        #                 addMessage(3, "Cannot access URL: " + download_url)
+        #                 print("Cannot access URL " + download_url + " - status was " + down.status_code)
+        #         except Exception as e:
+        #             # Error
+        #             print(e)
     else:
         addMessage(3, "Cannot access URL: " + url)
         print("Cannot access URL " + url + " - status was " + r.status_code)
     return content
 
 def validateFileContent(content):
-    annotations, content = frontmatter.parse(content)
     report = []
+    ## Parse content
+    try:
+        annotations, content = frontmatter.parse(content)
+    except Exception as e:
+        report = [MalformedFileError()]
+        return report
     ## Start validation
     if 'component-id' in annotations.keys():
         ### Validate as component
@@ -127,6 +144,13 @@ class NoAnnotationsError(Exception):
         self.autos = ["Not a component:"]
         self.code = "no annotations found"
 
+class MalformedFileError(Exception):
+    def __init__(self):
+        # Call the base class constructor with the parameters it needs
+        super().__init__("Malformed content, cannot parse Markdown/YAML")
+        self.autos = ["Malformed content:"]
+        self.code = "error while attempting to parse content"
+
 # Severity:
 # - Info: 1
 # - Warn: 2
@@ -135,7 +159,7 @@ class NoAnnotationsError(Exception):
 def addMessage(severity, message):
     if 'messages' not in session:
         session['messages'] = []
-    print(session)
+    #print(session)
     session['messages'].append({'severity': severity, 'message': message})
     return True
 

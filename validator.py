@@ -30,10 +30,11 @@ class Validator:
         # container-id
         {'container-id': validateID},
         # funder [CHECK]
-        {Optional('funder'): {
-            list: [ { Optional('name'): str, 
-                Optional('url'): str, 
-                Optional('grant-agreement'): str} ] }},
+        {Optional('funder'): list},
+        #         And(
+        #             list, [ { Optional('name'): str,
+        #                 Optional('url'): str,
+        #                 Optional('grant-agreement'): str} ] }},
         # has-part
         {'has-part': list},
         # ro-crate
@@ -48,9 +49,9 @@ class Validator:
             # doi
             {Optional('doi'): And(str, Regex('^http[s]?://.+$') )}, 
             # name
-            {'name': str},
+            {'name': And(str, error="This annotation should include a short name, as a single value")},
             # description
-            {'description': str},
+            {'description': And(str, error="This annotation should include a description, as a single paragraph")},
             # type
             {'type': And(lambda v: v in components, error='Type must be one of: ' + ", ".join(components) )},
             # release-date
@@ -102,12 +103,12 @@ class Validator:
                 schema = Schema(attribute, ignore_extra_keys=True)
                 schema.validate(annotations)
             except Exception as e:
-                print(type(e))
-                print(dir(e))
-                print('args',e.args)
-                print('autos',e.autos)
-                print('code',e.code)
-                print('errors',e.errors)
+                #print(type(e))
+                #print(dir(e))
+                #print('args',e.args)
+                #print('autos',e.autos)
+                #print('code',e.code)
+                #print('errors',e.errors)
                 errors.append(e)
         return errors
     

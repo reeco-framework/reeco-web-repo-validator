@@ -2,28 +2,34 @@
 
 {% block content %}
 <p><a href="/">Back</a></p>
-<h1>Validating {{ repo }}</h1>
-
-<p>Repository: {{ repo }}</p>
-<p>Number of markdown files: <code> {{ files|length }} </code></p>
+<h2>Report</h2>
+<h3>Repository</h3>
+<p class="lead">
+    {{ repo }} ({{tree}})
+    <a href="{{ repo }}/tree/{{ tree }}" target="_blank"><i class="bi-box-arrow-up-right"></i></a>
+    <code> {{ files|length }} </code> files found.
+</p>
 
 {% if files|length > 0 %}
 <p>List of files:</p>
-<ul>
+<ul class="list-group">
     {% for item in files %}
-    <li><a href="{{ item.html_url }}" target="_blank">{{ item.path }}</a>
+    <li class="list-group-item"><a href="#{{item.path}}">{{ item.path }}</a>
+        <a href="{{ repo }}/tree/{{ tree }}/{{ item.path }}" target="_blank"><i class="bi-box-arrow-up-right"></i></a>
     {% endfor %}
 </ul>
 {% else %}
 <p>No markdwown files found.</p>
 {% endif %}
 
+<h2>Validation details</h2>
 {% for file in validation.keys() %}
-<p>Validation for file {{file}}</p>
-<p>{{validation[file]}}</p>
-<ul>
+<h3 id="{{file}}">{{file}}</h3>
+<!--<p>Validation for file {{file}}</p>-->
+<ul class="list-group">
     {% for error in validation[file][1] %}
-    <li>{{error.autos[0]}} {{error.code}}
+    <li class="list-group-item">{{error.autos[0]}} {{error.code}}
+        <a href="{{ repo }}/tree/{{ tree }}/{{file}}" target="_blank"><i class="bi-box-arrow-up-right"></i></a>
     {% endfor%}
 </ul>
 {% endfor %}
