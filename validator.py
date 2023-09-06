@@ -22,7 +22,7 @@ class Validator:
         both = [
             {Or("component-id", "container-id", only_one=True): str}
         ]
-        self._containerValidators = [] + both + [
+        self._containerErrors = [] + both + [
         ## Mandatory items for containers
         # name
         {'name': str},
@@ -40,7 +40,7 @@ class Validator:
         # ro-crate
         {Optional('ro-crate'): list}
         ]
-        self._componentValidators = [] + both + [
+        self._componentErrors = [] + both + [
             # component-id
             {'component-id': validateID },
             {Forbidden('container-id'): object },
@@ -113,10 +113,10 @@ class Validator:
         return errors
     
     def asComponent(self, annotations):
-        return self._validate(annotations, self._componentValidators)
+        return {'error': self._validate(annotations, self._componentErrors)}
     
     def asContainer(self, annotations):
-        return self._validate(annotations, self._containerValidators)
+        return {'error': self._validate(annotations, self._containerErrors)}
     
     
 if __name__ == '__main__':

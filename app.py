@@ -11,6 +11,7 @@ import requests
 import frontmatter
 #from github import Github
 
+import yaml
 import secrets
 
 from validator import Validator
@@ -61,7 +62,7 @@ def validateAction():
             tree = 'main'
         files = getFiles(repo, tree)
         # print("files:",len(files))
-        print("files obj: ", files)
+        #print("files obj: ", files)
         # Only keep md files
         files = [item for item in files if item['path'].endswith('.md') ]
         # print(len(files))
@@ -92,7 +93,9 @@ def validate(files):
     report = {}
     for fi in files:
         content = getFileContent(fi['url'])
-        report[fi['path']] = [content, validateFileContent(content)]
+        annotations, none = frontmatter.parse(content)
+        yamltxt = yaml.dump(annotations)
+        report[fi['path']] = [yamltxt, validateFileContent(content)]
     return report
 
 def getFileContent(url):

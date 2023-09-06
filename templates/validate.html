@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
 
 {% block content %}
+<div class="container mb-4">
 <p><a href="/">Back</a></p>
 <h2>Report</h2>
 <h3>Repository</h3>
@@ -21,18 +22,27 @@
 {% else %}
 <p>No markdwown files found.</p>
 {% endif %}
+</div>
 
-<h2>Validation details</h2>
+<div class="container">
+<h2>Validation report</h2>
 {% for file in validation.keys() %}
-<h3 id="{{file}}">{{file}}</h3>
+    <div class="mt-3">
+<h5 id="{{file}}">{{file}}</h5>
+        <code class="" style="white-space: pre;">{{ validation[file][0] }}</code>
 <!--<p>Validation for file {{file}}</p>-->
-<ul class="list-group">
-    {% for error in validation[file][1] %}
-    <li class="list-group-item">{{error.autos[0]}} {{error.code}}
-        <a href="{{ repo }}/tree/{{ tree }}/{{file}}" target="_blank"><i class="bi-box-arrow-up-right"></i></a>
+        {% if validation[file][1]['error'] | length == 0 %}
+        <div class="alert alert-info"><i class="bi bi-info-square"></i> No errors found. </div>
+        {% endif %}
+    {% for error in validation[file][1]['error'] %}
+        <div class="alert alert-danger"><i class="bi bi-bug"></i>
+            {{error.autos[0]}} {{error.code}}
+            File: <a href="{{ repo }}/tree/{{ tree }}/{{file}}" target="_blank"> {{file}} <i class="bi-box-arrow-up-right"></i></a>
+        </div>
     {% endfor%}
-</ul>
+    </div>
 {% endfor %}
-{% endblock %}
+</div>
 
-<pre>{{validation}}</pre>
+
+{% endblock %}
