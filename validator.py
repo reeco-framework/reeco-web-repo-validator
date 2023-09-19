@@ -1,3 +1,4 @@
+import re
 
 from schema import Schema, And, Use, Or, Optional, Forbidden, SchemaError, Regex
 import sys, os
@@ -6,14 +7,16 @@ import frontmatter
 sys.path.insert(1, os.path.dirname(os.path.abspath(__file__)) + '/reeco-annotation-schema/')
 from reeco import Schema as ReecoSchema
 
+
 class Validator:
     def __init__(self):
+        reeco_schema_link = "https://github.com/reeco-framework/reeco-annotation-schema/blob/main/schema/README.md"
         REECO = ReecoSchema()
         #print("Components: ",REECO.components())
         components = list(map( lambda x: x['type'], REECO.components() ) ) + ['Component'] 
         containers = list(map( lambda x: x['type'], REECO.containers() ) ) + ['Container']
         licences = list(map( lambda x: x['code'], REECO.licences() ) )
-        print(licences)
+        #print(licences)
         ## Reusable validators
         validateURL = And(str, Regex('^http[s]?://.+$'), error='Value must be an HTTP(S) URL' )
         validateID = And(str, Regex('[^\s]+(/[^\s]+(/[^\s]+)?)?') )
@@ -40,14 +43,28 @@ class Validator:
         # ro-crate
         {Optional('ro-crate'): list}
         ]
+        #print(licences)
         self._componentErrors = [] + both + [
             # component-id
             {'component-id': validateID },
             {Forbidden('container-id'): object },
             # resource
             {Optional('resource'): str},
-            # doi
-            {Optional('doi'): And(str, Regex('^http[s]?://.+$') )}, 
+            # doi https://www.crossref.org/blog/dois-and-matching-regular-expressions/
+            # /^10.\d{4,9}/[-._;()/:A-Z0-9]+$/i
+            # /^10.1002/[^\s]+$/i
+            # /^10.\d{4}/\d+-\d+X?(\d+)\d+<[\d\w]+:[\d\w]*>\d+.\d+.\w+;\d$/i
+            # /^10.1021/\w\w\d++$/i
+            # /^10.1207/[\w\d]+\&\d+_\d+$/i
+            {Optional('doi'): And(str,
+                    Or(
+                        Regex(r'^10.\d{4,9}/[-._;()/:A-Z0-9]+$', re.I),
+                        Regex(r'^10.1002/[^\s]+$', re.I),
+                        Regex(r'^10.\d{4}/\d+-\d+X?(\d+)\d+<[\d\w]+:[\d\w]*>\d+.\d+.\w+;\d$', re.I),
+                        #Regex(r'^10.1021/\w\w\d++$', re.I), These two don't seem to work
+                        #Regex(r'^10.1207/[\w\d]+\&\d+_\d+$', re.I),
+                        error="DOI is invalid"
+                    ))},
             # name
             {'name': And(str, error="This annotation should include a short name, as a single value")},
             # description
@@ -57,18 +74,23 @@ class Validator:
             # release-date
             {Optional('release-date'): str},
             # release-number
-            {Optional('release-date'): str},
+            {Optional('release-number'): str},
             # release-link
             {Optional('release-link'): validateURL},
-            # changelog
-            ### TODO Check file exists
+            # changelog ### TODO Check file exists
+            {Optional('changelog'): str},
             # licence
-            {'licence': And(lambda v: v in licences, error='Licence must be a list of licence codes from the Reeco Annotation Schema reference.' )},
+            {'licence': [And(str, lambda v: v in licences, error='Licence must be a list of licence codes from the Reeco Annotation Schema reference.' )]},
             # image
+            {Optional('image'): validateURL},
             # logo
+            {Optional('logo'): validateURL},
             # demo
+            {Optional('demo'): validateURL},
             # running-instance
+            {Optional('running-instance'): validateURL},
             # contributors
+            {Optional('contributors'): list},
             # related-component
             # informed-by
             # use-case
