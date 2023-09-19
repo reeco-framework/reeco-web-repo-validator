@@ -1,5 +1,5 @@
 import re
-
+import requests
 from schema import Schema, And, Use, Or, Optional, Forbidden, SchemaError, Regex
 import sys, os
 import frontmatter
@@ -20,6 +20,15 @@ class Validator:
         ## Reusable validators
         validateURL = And(str, Regex('^http[s]?://.+$'), error='Value must be an HTTP(S) URL' )
         validateID = And(str, Regex('[^\s]+(/[^\s]+(/[^\s]+)?)?') )
+
+        def resolve(data):
+            response = requests.head(data)
+            if response.status_code == 200:
+                return data
+            else:
+                raise Exception("URL cannot be resolved")
+
+        resolvableURL = And(Use(lambda fff: resolve(fff)), error="URL cannot be resolved.")
 
         ## Validators for both containers and components
         both = [
@@ -76,35 +85,49 @@ class Validator:
             # release-number
             {Optional('release-number'): str},
             # release-link
-            {Optional('release-link'): validateURL},
+            {Optional('release-link'): And(validateURL, resolvableURL)},
             # changelog ### TODO Check file exists
             {Optional('changelog'): str},
             # licence
             {'licence': [And(str, lambda v: v in licences, error='Licence must be a list of licence codes from the Reeco Annotation Schema reference.' )]},
             # image
-            {Optional('image'): validateURL},
+            {Optional('image'): And(validateURL, resolvableURL)},
             # logo
-            {Optional('logo'): validateURL},
+            {Optional('logo'): And(validateURL, resolvableURL)},
             # demo
-            {Optional('demo'): validateURL},
+            {Optional('demo'): And(validateURL, resolvableURL)},
             # running-instance
-            {Optional('running-instance'): validateURL},
+            {Optional('running-instance'): And(validateURL, resolvableURL)},
             # contributors
             {Optional('contributors'): list},
             # related-component
-            # informed-by
-            # use-case
-            # story
-            # persona
-            # documentation
-            # evaluated-in
-            # extends-software
-            # reuses-software
-            # reuses-data
-            # serves-data
-            # produces-data
-            # reused-in
-            # generated-by
+            {'related-components': [And({
+                # informed-by
+                Optional('informed-by'): Or(str, list),
+                # use-case
+                Optional('use-case'): Or(str, list),
+                # story
+                Optional('story'): Or(str, list),
+                # persona
+                Optional('persona'): Or(str, list),
+                # documentation
+                Optional('documentation'): Or(str, list),
+                # evaluated-in
+                Optional('evaluated-in'): Or(str, list),
+                # extends-software
+                Optional('extends'): Or(str, list),
+                # reuses-software
+                Optional('reuses'): Or(str, list),
+                # serves-data
+                Optional('serves-data'): Or(str, list),
+                # produces-data
+                Optional('produces-data'): Or(str, list),
+                # reused-in
+                Optional('reused-in'): Or(str, list),
+                # generated-by
+                Optional('generated-by'): Or(str, list)
+            }, error="Invalid values")]},
+
             # bibliography
             # published-in
             # main-publication

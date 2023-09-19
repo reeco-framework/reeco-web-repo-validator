@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, session
+from flask import Flask, render_template, redirect, url_for, request, session, make_response
 from flask_bootstrap import Bootstrap
 
 from flask_wtf import FlaskForm, CSRFProtect
@@ -52,13 +52,13 @@ def indexAction():
 
 @app.route('/validate',methods = ['GET'])
 def validateAction():
-    repo = request.args.get('repo')
+    repo = request.args.get('url')
     tree = request.args.get('tree')
     if repo is None:
         resp = make_response("Argument not provided: repo", 400)
         return resp
     else:
-        if tree is None:
+        if tree is None or tree == "":
             tree = 'main'
         files = getFiles(repo, tree)
         # print("files:",len(files))
@@ -93,9 +93,7 @@ def validate(files):
     report = {}
     for fi in files:
         content = getFileContent(fi['url'])
-        annotations, none = frontmatter.parse(content)
-        yamltxt = yaml.dump(annotations)
-        report[fi['path']] = [yamltxt, validateFileContent(content)]
+        report[fi['path']] = validateFileContent(content)
     return report
 
 def getFileContent(url):
@@ -126,9 +124,10 @@ def validateFileContent(content):
     ## Parse content
     try:
         annotations, content = frontmatter.parse(content)
+        yamltxt = yaml.dump(annotations)
     except Exception as e:
-        report = [MalformedFileError()]
-        return report
+        report = {'error': [MalformedFileError()]}
+        return ["", report]
     ## Start validation
     if 'component-id' in annotations.keys():
         ### Validate as component
@@ -137,8 +136,8 @@ def validateFileContent(content):
         ### Validate as container
         report = VALIDATOR.asContainer(annotations)
     else:
-        report = [NoAnnotationsError()]
-    return report
+        report = {'info': [NoAnnotationsError()]}
+    return [yamltxt, report]
 
 class NoAnnotationsError(Exception):
     def __init__(self):

@@ -41,15 +41,22 @@
         <code style="white-space: pre;">{{ validation[file][0] }}</code>
         </div>
 <!--<p>Validation for file {{file}}</p>-->
-        {% if validation[file][1]['error'] | length == 0 %}
-        <div class="alert alert-info"><i class="bi bi-info-square"></i> No errors found. </div>
+        {% if validation[file][1]['info'] | length > 0 %}
+            {% for error in validation[file][1]['info'] %}
+            <div class="alert alert-info"><i class="bi bi-info-square"></i>
+                {{error.autos[0]}} {{error.code}}
+                File: <a href="{{ repo }}/tree/{{ tree }}/{{file}}" target="_blank"> {{file}} <i class="bi-box-arrow-up-right"></i></a>
+            </div>
+            {% endfor%}
+        {% elif validation[file][1]['error'] | length == 0 %}
+        <div class="alert alert-success"><i class="bi bi-info-square"></i> No errors found. </div>
         {% endif %}
-    {% for error in validation[file][1]['error'] %}
+        {% for error in validation[file][1]['error'] %}
         <div class="alert alert-danger"><i class="bi bi-bug"></i>
             {{error.autos[0]}} {{error.code}}
             File: <a href="{{ repo }}/tree/{{ tree }}/{{file}}" target="_blank"> {{file}} <i class="bi-box-arrow-up-right"></i></a>
         </div>
-    {% endfor%}
+        {% endfor%}
     </div>
 {% endfor %}
 </div>
