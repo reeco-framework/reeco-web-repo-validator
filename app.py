@@ -14,7 +14,7 @@ import frontmatter
 import yaml
 import secrets
 
-from validator import Validator
+from reeco import Validator
 
 app = Flask(__name__)
 app.secret_key = secrets.token_urlsafe(16)
@@ -126,6 +126,7 @@ def validateFileContent(content):
         annotations, content = frontmatter.parse(content)
         yamltxt = yaml.dump(annotations)
     except Exception as e:
+        print(e)
         report = {'error': [MalformedFileError()]}
         return ["", report]
     ## Start validation

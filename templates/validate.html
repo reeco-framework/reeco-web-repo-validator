@@ -52,7 +52,13 @@
         <div class="alert alert-success"><i class="bi bi-info-square"></i> No errors found. </div>
         {% endif %}
         {% for error in validation[file][1]['error'] %}
-        <div class="alert alert-danger"><i class="bi bi-bug"></i>
+        <div class="alert alert-danger"><i class="bi bi-x-circle"></i>
+            {{error.autos[0]}} {{error.code}}
+            File: <a href="{{ repo }}/tree/{{ tree }}/{{file}}" target="_blank"> {{file}} <i class="bi-box-arrow-up-right"></i></a>
+        </div>
+        {% endfor%}
+        {% for error in validation[file][1]['warning'] %}
+        <div class="alert alert-warning"><i class="bi bi-cone-striped"></i>
             {{error.autos[0]}} {{error.code}}
             File: <a href="{{ repo }}/tree/{{ tree }}/{{file}}" target="_blank"> {{file}} <i class="bi-box-arrow-up-right"></i></a>
         </div>
