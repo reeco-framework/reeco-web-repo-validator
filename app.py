@@ -86,7 +86,7 @@ def getFiles(repo, tree):
             addMessage(3, "Can't connect to the repo: " + r.json()['message'])
     except Exception as ex:
         print(str(ex))
-        addMessage(3, "Error while connecting to URL: " + str(url))
+        addMessage(3, "Error while connecting to URL: " + str(url) + " " + str(ex))
     return {}
 
 
