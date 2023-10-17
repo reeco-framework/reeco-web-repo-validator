@@ -85,6 +85,7 @@ def getFiles(repo, tree):
         else:
             addMessage(3, "Can't connect to the repo: " + r.json()['message'])
     except Exception as ex:
+        print(str(ex))
         addMessage(3, "Error while connecting to URL: " + str(url))
     return {}
 
@@ -126,7 +127,7 @@ def validateFileContent(content):
         annotations, content = frontmatter.parse(content)
         yamltxt = yaml.dump(annotations)
     except Exception as e:
-        print(e)
+        print(str(e))
         report = {'error': [MalformedFileError()]}
         return ["", report]
     ## Start validation
