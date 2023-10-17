@@ -22,7 +22,7 @@ app.secret_key = secrets.token_urlsafe(16)
 # Bootstrap-Flask requires this line
 bootstrap = Bootstrap(app)
 
-GITHUB_TOKEN = Path(".GITHUB_TOKEN").read_text()
+GITHUB_TOKEN = Path(".GITHUB_TOKEN").read_text().strip()
 
 # Github
 #GH = Github(GITHUB_TOKEN)
