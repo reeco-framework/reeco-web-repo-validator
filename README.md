@@ -1,3 +1,14 @@
+---
+component-id: reeco-web-repo-validator
+name: REECO repository validator
+description: A web applciaiton to test annotations on your repository
+doi: 10.5281/zenodo.10655175
+type: Application
+resource: http://reeco.kmi.open.ac.uk
+related-components:
+- reuses:
+  - reeco-python
+---
 # reeco-web-repo-validator
 
 Installation
